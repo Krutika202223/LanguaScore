@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Your Result | LanguaScore</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="site-header"><a class="brand" href="index.html"><span class="brand-mark">L</span><span>LanguaScore</span></a><span class="header-note">Assessment report</span></header>
+  <main class="result-shell" id="result-content">
+    <div class="result-heading"><span class="eyebrow">Your language assessment result</span><h1>A clear picture of your English today.</h1><p>These results reflect only the answers and writing you submitted in this assessment.</p></div>
+    <section class="overall-result"><div><span class="section-kicker">Overall language proficiency</span><div class="overall-score" id="overall-score">--<small>%</small></div><div class="level" id="level">Calculating level</div></div><div class="score-ring" id="score-ring"><span>overall</span></div></section>
+    <section class="score-grid"><article class="score-card"><span class="card-label">Grammar score</span><strong id="grammar-score">--%</strong><p id="grammar-copy">Based on your grammar responses.</p></article><article class="score-card"><span class="card-label">Writing score</span><strong id="writing-score">--%</strong><p id="writing-copy">Based on your written response.</p></article></section>
+    <section class="insight-grid"><article class="insight-panel"><span class="section-kicker">What you did well</span><ul id="strengths"></ul></article><article class="insight-panel"><span class="section-kicker">Areas to improve</span><ul id="areas"></ul></article></section>
+    <section class="recommendation-panel"><div><span class="section-kicker">Personalized recommendations</span><h2>Your next best areas of practice.</h2></div><ul id="recommendations"></ul></section>
+    <p class="model-note" id="model-status"></p><a class="button secondary-button" href="index.html">Take another assessment</a>
+  </main>
+  <script src="result.js"></script>
+</body>
+</html>
