@@ -77,7 +77,7 @@ The complete response has this shape:
 
 ## Scoring and ML handoff
 
-The current implementation is intentionally transparent and does not pretend to be an ML prediction. Grammar is the percentage of correct answers against the server-owned answer key. Writing is a deterministic feature score using vocabulary diversity, sentence length, sentence variety, punctuation, word length, and a soft length target; it is not based on word count alone. Overall proficiency is `55% grammar + 45% writing`.
+The current implementation is intentionally transparent. Each assessment presents 10 randomly selected grammar questions from the 50-question server-owned bank, and grammar is the percentage of correct submitted answers against the server answer key. Writing is a deterministic feature score using vocabulary diversity, sentence length, sentence variety, punctuation, word length, and a soft length target; it is not based on word count alone. Overall proficiency is `55% grammar + 45% writing`.
 
 CEFR mapping is implemented in `backend/services/assessment_service.py`:
 
@@ -92,11 +92,25 @@ CEFR mapping is implemented in `backend/services/assessment_service.py`:
 Place Kaggle exports at:
 
 ```text
-backend/models/grammar_model.joblib
-backend/models/writing_model.joblib
+backend/models/grammar_category_model.joblib
+backend/models/grammar_score_model.joblib
 ```
 
-The exact loading hook is `GrammarService.__init__` in `backend/services/grammar_service.py` and `WritingService.__init__` in `backend/services/writing_service.py`; both use `OptionalJoblibModel` from `backend/services/model_loader.py`. The next model-integration step is to make each trained pipeline accept the documented feature representation and call its `predict` or `predict_proba` method inside that service. Keep preprocessing objects, such as a TF-IDF vectorizer or scaler, inside the exported sklearn pipeline so training and inference stay consistent.
+The Kaggle-trained models are available through `POST /api/assessment/kaggle`:
+
+```json
+{
+  "sentence": "She go to school every day.",
+  "target_category": "Tenses",
+  "error_type": "verb agreement"
+}
+```
+
+The response contains `grammar_category` and a `grammar_score` clamped to the
+range 0-100. The existing `POST /api/assessment` flow remains available for
+the browser assessment and uses its deterministic response-based scoring.
+
+The assessment selects one writing task from a server-owned question bank for each server session. Responses must contain 100-150 words. The exact loading hook is `GrammarService.__init__` in `backend/services/grammar_service.py` and `WritingService.__init__` in `backend/services/writing_service.py`; both use `OptionalJoblibModel` from `backend/services/model_loader.py`. Keep preprocessing objects, such as a TF-IDF vectorizer or scaler, inside the exported sklearn pipeline so training and inference stay consistent.
 
 Until those files exist, the API labels its output as `deterministic response-based baseline`.
 

@@ -13,10 +13,10 @@
     <div class="progress-track"><span id="progress-bar"></span></div>
     <form id="assessment-form">
       <section class="assessment-section"><div class="section-kicker">Section 01 / Grammar</div><h2>Choose the best answer.</h2><p class="section-description">Work through each question carefully. Your responses are scored against the assessment answer key.</p><div id="questions-container"></div></section>
-      <section class="assessment-section writing-section"><div class="section-kicker">Section 02 / Writing</div><h2>Write in your own words.</h2><p class="prompt">Write 100–150 words about your daily routine. Include details about what you do, when you do it, and how you feel about it.</p><textarea id="writing-response" name="writing_response" rows="9" placeholder="Start writing here..." required></textarea><div class="writing-meta"><span>Minimum 20 words · Suggested 100–150</span><span id="word-count">0 words</span></div></section>
+      <section class="assessment-section writing-section"><div class="section-kicker">Section 02 / Writing</div><h2>Write in your own words.</h2><p class="prompt" id="writing-prompt">Loading your writing question...</p><textarea id="writing-response" name="writing_response" rows="9" placeholder="Start writing here..." required></textarea><div class="writing-meta"><span>Suggested 100-150 words</span><span id="word-count">0 words</span></div></section>
       <div class="submit-row"><p id="form-error" class="form-error" role="alert"></p><button class="button primary-button" type="submit" id="submit-button">Submit assessment <span aria-hidden="true">&#8594;</span></button></div>
     </form>
   </main>
-  <script src="assessment.js"></script>
+  <script src="assessment.js?v=3"></script>
 </body>
 </html>

@@ -18,3 +18,13 @@ class OptionalJoblibModel:
     @property
     def available(self) -> bool:
         return self.model is not None
+
+
+class KaggleGrammarModels:
+    def __init__(self, models_path: Path) -> None:
+        self.category = OptionalJoblibModel(models_path / "grammar_category_model.joblib")
+        self.score = OptionalJoblibModel(models_path / "grammar_score_model.joblib")
+
+    @property
+    def available(self) -> bool:
+        return self.category.available and self.score.available

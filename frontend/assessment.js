@@ -2,6 +2,7 @@ const API_BASE = 'http://127.0.0.1:8000/api';
 const form = document.querySelector('#assessment-form');
 const questionsContainer = document.querySelector('#questions-container');
 const writingInput = document.querySelector('#writing-response');
+const writingPrompt = document.querySelector('#writing-prompt');
 const wordCount = document.querySelector('#word-count');
 const errorBox = document.querySelector('#form-error');
 let questions = [];
@@ -10,21 +11,26 @@ async function loadQuestions() {
   try {
     const response = await fetch(`${API_BASE}/assessment/questions`);
     if (!response.ok) throw new Error('Question service unavailable');
-    questions = (await response.json()).questions;
+    const assessment = await response.json();
+    questions = assessment.questions;
+    writingPrompt.textContent = assessment.writing_question?.prompt || 'Write 100-150 words about your daily routine.';
     questionsContainer.innerHTML = questions.map((question, index) => `
       <article class="question-card"><span class="question-number">${String(index + 1).padStart(2, '0')} / ${question.topic}</span>
       <p class="question-prompt">${question.prompt}</p><div class="options">
       ${Object.entries(question.options).map(([key, text]) => `<label class="option-label"><input type="radio" name="${question.id}" value="${key}"><span><strong>${key}.</strong> ${text}</span></label>`).join('')}
       </div></article>`).join('');
     updateProgress();
-  } catch (error) { errorBox.textContent = 'The assessment could not load. Start the FastAPI server and refresh this page.'; }
+  } catch (error) {
+    writingPrompt.textContent = 'Writing question unavailable. Please refresh after starting the FastAPI server.';
+    errorBox.textContent = 'The assessment could not load. Start the FastAPI server and refresh this page.';
+  }
 }
 
 function updateProgress() {
   const answered = questions.filter((question) => document.querySelector(`input[name="${question.id}"]:checked`)).length;
   const writingWords = writingInput.value.trim().split(/\s+/).filter(Boolean).length;
   const total = questions.length + 1;
-  const completed = answered + (writingWords >= 20 ? 1 : 0);
+  const completed = answered + (writingWords >= 100 ? 1 : 0);
   document.querySelector('#progress-count').textContent = `${completed} / ${total}`;
   document.querySelector('#progress-bar').style.width = `${completed / total * 100}%`;
   wordCount.textContent = `${writingWords} word${writingWords === 1 ? '' : 's'}`;
@@ -36,7 +42,8 @@ form.addEventListener('submit', async (event) => {
   event.preventDefault(); errorBox.textContent = '';
   const grammarAnswers = questions.map((question) => ({ question_id: question.id, answer: document.querySelector(`input[name="${question.id}"]:checked`)?.value || '' }));
   if (grammarAnswers.some((item) => !item.answer)) { errorBox.textContent = 'Please answer every grammar question before submitting.'; return; }
-  if (writingInput.value.trim().split(/\s+/).filter(Boolean).length < 20) { errorBox.textContent = 'Please write at least 20 words for the writing task.'; return; }
+  const writingWords = writingInput.value.trim().split(/\s+/).filter(Boolean).length;
+  if (writingWords < 100 || writingWords > 150) { errorBox.textContent = 'Please write between 100 and 150 words for the writing task.'; return; }
   const button = document.querySelector('#submit-button'); button.disabled = true; button.textContent = 'Assessing...';
   try {
     const response = await fetch(`${API_BASE}/assessment`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ language: 'English', grammar_answers: grammarAnswers, writing_response: writingInput.value }) });

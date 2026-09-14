@@ -16,7 +16,7 @@ class GrammarAnswer(BaseModel):
 
 class AssessmentRequest(BaseModel):
     language: str = Field(min_length=1, max_length=40)
-    grammar_answers: list[GrammarAnswer] = Field(min_length=1, max_length=30)
+    grammar_answers: list[GrammarAnswer] = Field(min_length=10, max_length=10)
     writing_response: str = Field(min_length=1, max_length=5000)
 
     @field_validator("language")
@@ -28,9 +28,21 @@ class AssessmentRequest(BaseModel):
     @classmethod
     def normalize_writing(cls, value: str) -> str:
         normalized = value.strip()
-        if len(normalized.split()) < 20:
-            raise ValueError("Writing response must contain at least 20 words")
+        word_count = len(normalized.split())
+        if word_count < 100 or word_count > 150:
+            raise ValueError("Writing response must contain between 100 and 150 words")
         return normalized
+
+
+class KaggleAssessmentRequest(BaseModel):
+    sentence: str = Field(min_length=1, max_length=5000)
+    target_category: str = Field(min_length=1, max_length=100)
+    error_type: str = Field(min_length=1, max_length=100)
+
+
+class KaggleAssessmentResponse(BaseModel):
+    grammar_category: str
+    grammar_score: float = Field(ge=0, le=100)
 
 
 class AssessmentResponse(BaseModel):
