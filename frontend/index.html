@@ -18,17 +18,41 @@
     <section class="selection-panel" aria-labelledby="language-heading">
       <div class="section-kicker">01 / Language</div>
       <h2 id="language-heading">Select a language</h2>
+      <p class="selected-language" aria-live="polite">Selected language: <strong id="selected-language-name">English</strong></p>
       <div class="language-list">
-        <button class="language-option selected" data-language="English"><span><strong>English</strong><small>Full assessment available</small></span><span class="status available">Available</span></button>
-        <button class="language-option disabled" disabled><span><strong>French</strong><small>Assessment in preparation</small></span><span class="status">Coming soon</span></button>
-        <button class="language-option disabled" disabled><span><strong>Spanish</strong><small>Assessment in preparation</small></span><span class="status">Coming soon</span></button>
-        <button class="language-option disabled" disabled><span><strong>German</strong><small>Assessment in preparation</small></span><span class="status">Coming soon</span></button>
-        <button class="language-option disabled" disabled><span><strong>Hindi</strong><small>Assessment in preparation</small></span><span class="status">Coming soon</span></button>
+        <button class="language-option selected" data-language="English" aria-pressed="true"><span><strong>English</strong><small>Full assessment available</small></span><span class="status available">Selected</span></button>
+        <button class="language-option" data-language="French" aria-pressed="false"><span><strong>French</strong><small>Full assessment available</small></span><span class="status available">Available</span></button>
+        <button class="language-option" data-language="German" aria-pressed="false"><span><strong>German</strong><small>Full assessment available</small></span><span class="status available">Available</span></button>
       </div>
-      <a class="button primary-button" href="assessment.html">Start language assessment <span aria-hidden="true">&#8594;</span></a>
+      <a class="button primary-button" id="start-assessment" href="assessment.html">Start language assessment <span aria-hidden="true">&#8594;</span></a>
       <p class="fine-print">Approx. 10 minutes · Your result is based only on this assessment.</p>
     </section>
   </main>
   <footer class="site-footer"><span>LanguaScore</span><span>Measure what you know today.</span></footer>
+  <script>
+    const languageOptions = document.querySelectorAll('.language-option:not([disabled])');
+    const startAssessment = document.querySelector('#start-assessment');
+    const selectedLanguageName = document.querySelector('#selected-language-name');
+    const savedLanguage = sessionStorage.getItem('languaScoreLanguage') || 'English';
+    languageOptions.forEach((option) => {
+      option.classList.toggle('selected', option.dataset.language === savedLanguage);
+      option.setAttribute('aria-pressed', option.dataset.language === savedLanguage);
+      option.querySelector('.status').textContent = option.dataset.language === savedLanguage ? 'Selected' : 'Available';
+      if (option.dataset.language === savedLanguage) selectedLanguageName.textContent = savedLanguage;
+      option.addEventListener('click', () => {
+        sessionStorage.setItem('languaScoreLanguage', option.dataset.language);
+        selectedLanguageName.textContent = option.dataset.language;
+        languageOptions.forEach((item) => {
+          const isSelected = item === option;
+          item.classList.toggle('selected', isSelected);
+          item.setAttribute('aria-pressed', isSelected);
+          item.querySelector('.status').textContent = isSelected ? 'Selected' : 'Available';
+        });
+      });
+    });
+    startAssessment.addEventListener('click', () => {
+      sessionStorage.setItem('languaScoreLanguage', document.querySelector('.language-option.selected').dataset.language);
+    });
+  </script>
 </body>
 </html>

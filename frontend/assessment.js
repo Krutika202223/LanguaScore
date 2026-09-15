@@ -5,11 +5,15 @@ const writingInput = document.querySelector('#writing-response');
 const writingPrompt = document.querySelector('#writing-prompt');
 const wordCount = document.querySelector('#word-count');
 const errorBox = document.querySelector('#form-error');
+const language = sessionStorage.getItem('languaScoreLanguage') || 'English';
 let questions = [];
+
+document.querySelector('#assessment-language').textContent = `${language} assessment`;
+document.querySelector('#assessment-title').textContent = `Show us your ${language}.`;
 
 async function loadQuestions() {
   try {
-    const response = await fetch(`${API_BASE}/assessment/questions`);
+    const response = await fetch(`${API_BASE}/assessment/questions?language=${encodeURIComponent(language)}`);
     if (!response.ok) throw new Error('Question service unavailable');
     const assessment = await response.json();
     questions = assessment.questions;
@@ -46,7 +50,7 @@ form.addEventListener('submit', async (event) => {
   if (writingWords < 100 || writingWords > 150) { errorBox.textContent = 'Please write between 100 and 150 words for the writing task.'; return; }
   const button = document.querySelector('#submit-button'); button.disabled = true; button.textContent = 'Assessing...';
   try {
-    const response = await fetch(`${API_BASE}/assessment`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ language: 'English', grammar_answers: grammarAnswers, writing_response: writingInput.value }) });
+    const response = await fetch(`${API_BASE}/assessment`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ language, grammar_answers: grammarAnswers, writing_response: writingInput.value }) });
     const result = await response.json();
     if (!response.ok) throw new Error(result.detail?.[0]?.msg || result.detail || 'Assessment failed');
     sessionStorage.setItem('languaScoreResult', JSON.stringify(result)); window.location.href = 'result.html';
