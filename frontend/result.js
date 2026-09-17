@@ -4,7 +4,7 @@ if (!result) { window.location.href = 'index.html'; } else {
   document.querySelector('#grammar-score').textContent = `${result.grammar_score}%`;
   document.querySelector('#writing-score').textContent = `${result.writing_score}%`;
   document.querySelector('#level').textContent = result.level;
-  document.querySelector('#grammar-copy').textContent = `Your grammar performance is ${result.grammar_score}% based on your assessment responses.`;
+  document.querySelector('#grammar-copy').textContent = `Combined quiz and model score: ${result.grammar_score}%. Model classification: ${result.grammar_category}.`;
   document.querySelector('#writing-copy').textContent = `Your writing response scored ${result.writing_score}% across language-use features.`;
   document.querySelector('#strengths').innerHTML = (result.strengths.length ? result.strengths : ['Keep building consistency across the assessment.']).map((item) => `<li>${item}</li>`).join('');
   document.querySelector('#areas').innerHTML = (result.areas_to_improve.length ? result.areas_to_improve : ['Continue extending your language range.']).map((item) => `<li>${item}</li>`).join('');

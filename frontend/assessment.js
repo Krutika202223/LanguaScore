@@ -1,4 +1,4 @@
-const API_BASE = 'http://127.0.0.1:8000/api';
+const API_BASE = 'http://127.0.0.1:8001/api';
 const form = document.querySelector('#assessment-form');
 const questionsContainer = document.querySelector('#questions-container');
 const writingInput = document.querySelector('#writing-response');
@@ -14,8 +14,14 @@ document.querySelector('#assessment-title').textContent = `Show us your ${langua
 async function loadQuestions() {
   try {
     const response = await fetch(`${API_BASE}/assessment/questions?language=${encodeURIComponent(language)}`);
-    if (!response.ok) throw new Error('Question service unavailable');
+    if (!response.ok) {
+      const details = await response.json().catch(() => ({}));
+      throw new Error(details.detail || `Question service returned ${response.status}`);
+    }
     const assessment = await response.json();
+    if (!Array.isArray(assessment.questions) || assessment.questions.length === 0) {
+      throw new Error(`No questions are available for ${language}.`);
+    }
     questions = assessment.questions;
     writingPrompt.textContent = assessment.writing_question?.prompt || 'Write 100-150 words about your daily routine.';
     questionsContainer.innerHTML = questions.map((question, index) => `
@@ -25,8 +31,9 @@ async function loadQuestions() {
       </div></article>`).join('');
     updateProgress();
   } catch (error) {
+    questionsContainer.innerHTML = '<p class="form-error">Questions could not be loaded.</p>';
     writingPrompt.textContent = 'Writing question unavailable. Please refresh after starting the FastAPI server.';
-    errorBox.textContent = 'The assessment could not load. Start the FastAPI server and refresh this page.';
+    errorBox.textContent = `${error.message} Start the FastAPI server, then refresh this page.`;
   }
 }
 

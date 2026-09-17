@@ -40,6 +40,18 @@ class KaggleAssessmentRequest(BaseModel):
     error_type: str = Field(min_length=1, max_length=100)
 
 
+class GrammarInput(BaseModel):
+    sentence: str = Field(min_length=1, max_length=5000)
+
+    @field_validator("sentence")
+    @classmethod
+    def normalize_sentence(cls, value: str) -> str:
+        normalized = value.strip()
+        if not normalized:
+            raise ValueError("Sentence cannot be empty")
+        return normalized
+
+
 class KaggleAssessmentResponse(BaseModel):
     grammar_category: str
     grammar_score: float = Field(ge=0, le=100)
@@ -47,6 +59,7 @@ class KaggleAssessmentResponse(BaseModel):
 
 class AssessmentResponse(BaseModel):
     grammar_score: int = Field(ge=0, le=100)
+    grammar_category: str
     writing_score: int = Field(ge=0, le=100)
     overall_score: int = Field(ge=0, le=100)
     level: str

@@ -12,8 +12,12 @@ class OptionalJoblibModel:
         if path.exists():
             import joblib
 
-            self.model = joblib.load(path)
-            self.status = f"joblib model loaded: {path.name}"
+            try:
+                self.model = joblib.load(path)
+            except (ImportError, OSError, ValueError):
+                self.status = f"joblib model unavailable: {path.name}"
+            else:
+                self.status = f"joblib model loaded: {path.name}"
 
     @property
     def available(self) -> bool:
@@ -28,3 +32,12 @@ class KaggleGrammarModels:
     @property
     def available(self) -> bool:
         return self.category.available and self.score.available
+
+    def predict_sentence(self, sentence: str) -> tuple[str, float]:
+        if not self.available:
+            raise RuntimeError("Kaggle grammar models are unavailable")
+
+        category = self.category.model.predict([sentence])[0]
+        score = self.score.model.predict([sentence])[0]
+        percentage = max(0, min(100, float(score) * 100))
+        return str(category), round(percentage, 2)

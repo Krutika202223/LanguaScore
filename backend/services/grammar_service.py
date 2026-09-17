@@ -3,6 +3,7 @@ from pathlib import Path
 import random
 
 from backend.schemas.assessment import GrammarAnswer
+from backend.services.language_question_banks import LANGUAGE_QUESTION_BANKS
 from backend.services.model_loader import OptionalJoblibModel
 
 
@@ -64,12 +65,18 @@ class GrammarService:
     def __init__(self) -> None:
         self.model = OptionalJoblibModel(Path(__file__).parents[1] / "models" / "grammar_model.joblib")
 
-    def select_questions(self, count: int = 10) -> list[dict[str, object]]:
-        return random.sample(QUESTION_BANK, count)
+    def select_questions(self, language: str = "English", count: int = 10) -> list[dict[str, object]]:
+        question_bank = QUESTION_BANK if language == "English" else LANGUAGE_QUESTION_BANKS.get(language)
+        if not question_bank:
+            raise ValueError(f"Unsupported assessment language: {language}")
+        return random.sample(question_bank, count)
 
-    def score(self, answers: list[GrammarAnswer]) -> tuple[int, dict[str, int]]:
+    def score(self, answers: list[GrammarAnswer], language: str = "English") -> tuple[int, dict[str, int]]:
+        question_bank = QUESTION_BANK if language == "English" else LANGUAGE_QUESTION_BANKS.get(language)
+        if not question_bank:
+            raise ValueError(f"Unsupported assessment language: {language}")
         answer_map = {item.question_id: item.answer for item in answers}
-        selected_questions = [question for question in QUESTION_BANK if question["id"] in answer_map]
+        selected_questions = [question for question in question_bank if question["id"] in answer_map]
         if len(selected_questions) != len(answers):
             raise ValueError("Assessment contains an unknown or duplicate grammar question")
         topic_totals: dict[str, int] = {}

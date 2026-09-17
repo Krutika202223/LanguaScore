@@ -1,9 +1,12 @@
 import random
+from pathlib import Path
 
 from backend.schemas.assessment import AssessmentRequest, AssessmentResponse
 from backend.services.grammar_service import QUESTION_BANK, GrammarService
+from backend.services.language_question_banks import LANGUAGE_QUESTION_BANKS, LANGUAGE_WRITING_PROMPTS
 from backend.services.recommendation_service import build_recommendations
 from backend.services.writing_service import WritingService
+from backend.services.model_loader import KaggleGrammarModels
 
 
 WRITING_QUESTION_BANK = [
@@ -61,26 +64,49 @@ class AssessmentService:
     def __init__(self) -> None:
         self.grammar = GrammarService()
         self.writing = WritingService()
+        self.kaggle_grammar = KaggleGrammarModels(
+            Path(__file__).parents[1] / "models"
+        )
 
-    def questions(self) -> dict[str, object]:
-        selected_questions = self.grammar.select_questions()
+    def questions(self, language: str = "English") -> dict[str, object]:
+        selected_questions = self.grammar.select_questions(language)
+        writing_question = random.choice(WRITING_QUESTION_BANK)
+        if language in LANGUAGE_WRITING_PROMPTS:
+            writing_question = {
+                "id": f"writing_{language.lower()}_prompt",
+                "topic": "Writing",
+                "prompt": random.choice(LANGUAGE_WRITING_PROMPTS[language]),
+            }
         return {
-            "language": "English",
+            "language": language,
             "questions": [
                 {key: value for key, value in question.items() if key != "answer"}
                 for question in selected_questions
             ],
-            "writing_question": random.choice(WRITING_QUESTION_BANK),
+            "writing_question": writing_question,
         }
 
     def evaluate(self, payload: AssessmentRequest) -> AssessmentResponse:
-        grammar_score, topic_scores = self.grammar.score(payload.grammar_answers)
+        quiz_grammar_score, topic_scores = self.grammar.score(payload.grammar_answers, payload.language)
         writing_score, _ = self.writing.score(payload.writing_response)
+        grammar_category = "Model unavailable"
+        grammar_score = quiz_grammar_score
+        if self.kaggle_grammar.available:
+            grammar_category, model_grammar_score = self.kaggle_grammar.predict_sentence(
+                payload.writing_response
+            )
+            grammar_score = round((quiz_grammar_score + model_grammar_score) / 2)
         overall_score = round(grammar_score * 0.55 + writing_score * 0.45)
         strengths, areas, recommendations = build_recommendations(grammar_score, writing_score, topic_scores)
-        statuses = {self.grammar.model.status, self.writing.model.status}
+        statuses = {
+            self.grammar.model.status,
+            self.writing.model.status,
+            self.kaggle_grammar.category.status,
+            self.kaggle_grammar.score.status,
+        }
         return AssessmentResponse(
             grammar_score=grammar_score,
+            grammar_category=grammar_category,
             writing_score=writing_score,
             overall_score=overall_score,
             level=level_for_score(overall_score),
